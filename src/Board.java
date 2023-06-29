@@ -23,7 +23,6 @@ public class Board {
     }
 
     public void printBoard() {
-        System.out.println("---------------------------");
         for (int[] ints : board) {
             for (int j = 0; j < board[0].length; j++) {
                 if (batmanTurns <= 0) {
@@ -43,34 +42,26 @@ public class Board {
             System.out.println();
         }
         printPowerUps();
-        System.out.println("\u001B[31mPlayer1's Bank: " + p1.getMoney() + "\u001B[0m");
-        System.out.println("\u001B[33mPlayer2's Bank: " + p2.getMoney() + "\u001B[0m");
-        System.out.println("It is now " + turnToColor() + "Player" + (turn + 1) + "'s\u001B[0m turn");
-        System.out.println("--------------------------");
+        String [] text = {"\u001B[31mPlayer1's Bank: " + p1.getMoney() + "\u001B[0m", "\u001B[33mPlayer2's Bank: " + p2.getMoney() + "\u001B[0m", "It is now " + turnToColor() + "Player" + (turn + 1) + "'s\u001B[0m turn"};
+        fPrint(text);
     }
 
     public void printPowerUps() {
-        System.out.println("---------------------------");
-        System.out.print("\u001B[31mPlayer1's powerups: \u001B[0m");
+        String p1Powers = "";
         for (int i = 0; i < p1.getPowers().size(); i++) {
-            System.out.print(p1.getPowers().get(i).getType() + " ");
+            p1Powers += p1.getPowers().get(i).getType() + " ";
         }
-        System.out.println();
-        System.out.print("\u001B[33mPlayer2's powerups: \u001B[0m");
+        String p2Powers = "";
         for (int i = 0; i < p2.getPowers().size(); i++) {
-            System.out.print(p2.getPowers().get(i).getType() + " ");
+            p2Powers += p2.getPowers().get(i).getType() + " ";
         }
-        System.out.println();
-        System.out.println("---------------------------");
+        String [] text = {"\u001B[31mPlayer1's powerups: \u001B[0m" + p1Powers, "\u001B[33mPlayer2's powerups: \u001B[0m" + p2Powers};
+        fPrint(text);
     }
 
     public void printShop() {
-        System.out.println("--------------------------");
-        System.out.println("\u001B[30m--1--BlackoutBatman--\u001B[0m Changes all pieces to black for 6 total turns - $500");
-        System.out.println("\u001B[36m--2--AerialAssault--\u001B[0m Remove an entire column of a player's choosing - $250");
-        System.out.println("\u001B[32m--3--JokersBulldozer--\u001B[0m Remove an entire row of a player's choosing - $250");
-        System.out.println("Please type the corresponding number to the PowerUp you would like to purchase. To exit the shop, type 'exitshop'");
-        System.out.println("--------------------------");
+        String [] text = {"\u001B[30m--1--BlackoutBatman--\u001B[0m Changes all pieces to black for 6 total turns - $500", "\u001B[36m--2--AerialAssault--\u001B[0m Remove an entire column of a player's choosing - $250", "\u001B[32m--3--JokersBulldozer--\u001B[0m Remove an entire row of a player's choosing - $250", "Please type the corresponding number to the PowerUp you would like to purchase. To exit the shop, type 'exitshop'"};
+        fPrint(text);
     }
 
     public void clearBoard() {
@@ -86,10 +77,7 @@ public class Board {
         turn = 0;
         p1 = new Player(0);
         p2 = new Player(1);
-
-        System.out.println("---------------------------");
-        System.out.println("Thanks for playing! The board and all powerups have been cleared");
-        System.out.println("---------------------------");
+        fPrint("Thanks for playing! The board and all powerups have been cleared");
     }
 
     public boolean isBoardFull() {
@@ -103,18 +91,21 @@ public class Board {
         return true;
     }
 
-    public boolean isGameWon() {
+    public boolean isGameOver() {
         boolean won = false;
         //checks for row and diagonal wins
         for (int r = 0; r < 6; r++) {
             for (int c = 0; c < 4; c++) {
                 if (board[r][c] != -1 && board[r][c] == board[r][c+1] && board[r][c+1] == board[r][c+2] && board[r][c+2] == board[r][c+3]) {
                     won = true;
+                    break;
                 }
                 else if (board[r][c] != -1 && r < 3 && board[r][c] == board[r+1][c+1] && board[r+1][c+1] == board[r+2][c+2] && board[r+2][c+2] == board[r+3][c+3]) {
                     won = true;
+                    break;
                 } else if (board[r][c] != -1 && r >= 3 && board[r][c] == board[r-1][c+1] && board[r-1][c+1] == board[r-2][c+2] && board[r-2][c+2] == board[r-3][c+3]) {
                     won = true;
+                    break;
                 }
             }
         }
@@ -132,16 +123,17 @@ public class Board {
         }
 
         if (won) {
-            System.out.println("---------------------------");
-            System.out.println("Congratulations! Player " + turn + " won!");
-            System.out.println("---------------------------");
+            fPrint("Congratulations! Player " + turn + " won!");
+            reset();
+            return true;
+        } else if (isBoardFull()) {
+            fPrint("Its a tie!");
             reset();
             return true;
         }
 
         return false;
     }
-
 
     public boolean move(int column) { // column goes from 1-7 left-right
         for (int i = board.length - 1; i >= 0; i--) {
@@ -158,13 +150,11 @@ public class Board {
     }
 
     public void blackoutBatman() {
-        turnToPlayer().addMoney(-500);
         batmanTurns = 6;
         turnToPlayer().usePowerup("blackoutbatman");
     }
 
     public void aerialAssault(int col) {
-        turnToPlayer().addMoney(-250);
         for(int i = 0; i < board.length; i++) {
             board[i][col - 1] = -1;
         }
@@ -172,7 +162,6 @@ public class Board {
     }
 
     public void jokersBulldozer(int row){
-        turnToPlayer().addMoney(-250);
         if (row != 6) {
             for (int i = 6 - row; i > 0; i--) {
                 System.arraycopy(board[i - 1], 0, board[i], 0, board[0].length);
@@ -182,204 +171,193 @@ public class Board {
         turnToPlayer().usePowerup("jokersbulldozer");
     }
 
-    public Player turnToPlayer() {
-        if (turn == 0) {
-            return p1;
-        }
-        return p2;
-    }
-
-    public String turnToColor() {
-        if (turn == 0) {
-            return "\u001B[31m";
-        }
-        return "\u001B[33m";
-    }
-
     public void play() {
-        System.out.println("---------------------------");
-        System.out.println("The rules of Super Connect 4 are as follows:");
-        System.out.println("The game will end when there is a four-in-a-row or a stalemate.");
-        System.out.println("Players will take turns placing pieces one at a time with an objective to connect 4 of their pieces in a row, whether diagonal, horizontal, or vertical.");
-        System.out.println("Turns will commence as the following: Player 1 (red) will move first followed by Player 2 (yellow). After a player moves, their turn is over.");
-        System.out.println("To place your piece, type in 'move', click enter, and then type which column you want to place the piece in. The columns are numbered 1-7, from left to right");
-        System.out.println("Super Connect 4 also has powers");
-        System.out.println("To open the shop, type 'shop,' and to exit the game, type 'exit'");
-        System.out.println("To see your powers, type 'powers'. To use a power, type 'usepower'");
-        System.out.println("Have Fun!");
-        System.out.println("---------------------------");
+        String [] text = {"The rules of Super Connect 4 are as follows:", "The game will end when there is a four-in-a-row or a stalemate", "Players will take turns placing pieces one at a time with an objective to connect 4 of their pieces in a row, whether diagonal, horizontal, or vertical", "Turns will commence as the following: Player 1 (red) will move first followed by Player 2 (yellow). After a player moves, their turn is over", "To place your piece, type in 'move', click enter, and then type which column you want to place the piece in. The columns are numbered 1-7, from left to right", "Super Connect 4 also has powers", "To open the shop, type 'shop,' and to exit the game, type 'exit'", "To see your powers, type 'powers'. To use a power, type 'usepower'", "Have Fun!"};
+        fPrint(text);
         Scanner in = new Scanner(System.in);
 
 
         Board board = new Board();
         printBoard();
         //each loop of outer while loop represents 1 turn
-        while (!isGameWon() && !isBoardFull()) {
+        while (!isGameOver()) {
             String input = in.nextLine();
             //each loop of inner while loop represents what the player does DURING their turn
             while (!input.equals("move")) {
+                Player p = turnToPlayer();
                 switch (input) {
+
                     case "exit" -> {
                         reset();
                         System.exit(0);
                     }
-                    case "powers" -> printPowerUps();
+
+                    case "powers" -> {
+                        printPowerUps();
+                        break;
+                    }
+
                     case "shop" -> {
                         printShop();
                         String nextIn = in.nextLine();
                         while (!nextIn.equals("exitshop")) {
                             switch (nextIn) {
+
                                 case "1" -> {
-                                    if (turnToPlayer().getMoney() < 500) {
-                                        System.out.println("---------------------------");
-                                        System.out.println("You don't have enough money for this powerup");
-                                        System.out.println("---------------------------");
+                                    if (p.getMoney() < 500) {
+                                        fPrint("You need " + (500 - p.getMoney()) + " more gold to purchase blackoutbatman");
                                         break;
                                     }
-                                    turnToPlayer().addPowerup("blackoutbatman");
-                                    System.out.println("---------------------------");
-                                    System.out.println("You have successfully purchased blackoutbatman");
-                                    System.out.println("Type 'exitshop' to exit the shop");
-                                    System.out.println("---------------------------");
+                                    p.addPowerup("blackoutbatman");
+                                    String [] t = {"You have successfully purchased blackoutbatman", "You now have " + p.getMoney() + " gold remaining", "Type 'exitshop' to exit the shop"};
+                                    fPrint(t);
+                                    break;
                                 }
+
                                 case "2" -> {
-                                    if (turnToPlayer().getMoney() < 250) {
-                                        System.out.println("---------------------------");
-                                        System.out.println("You don't have enough money for this powerup");
-                                        System.out.println("---------------------------");
+                                    if (p.getMoney() < 250) {
+                                        fPrint("You need " + (250 - p.getMoney()) + " more gold to purchase aerialassault");
                                         break;
                                     }
-                                    turnToPlayer().addPowerup("aerialassault");
-                                    System.out.println("---------------------------");
-                                    System.out.println("You have successfully purchased aerialassault");
-                                    System.out.println("Type 'exitshop' to exit the shop");
-                                    System.out.println("---------------------------");
+                                    p.addPowerup("aerialassault");
+                                    String [] t = {"You have successfully purchased aerialassault", "You now have " + p.getMoney() + " gold remaining", "Type 'exitshop' to exit the shop"};
+                                    fPrint(t);
+                                    break;
                                 }
+
                                 case "3" -> {
-                                    if (turnToPlayer().getMoney() < 250) {
-                                        System.out.println("---------------------------");
-                                        System.out.println("You don't have enough money for this powerup");
-                                        System.out.println("---------------------------");
+                                    if (p.getMoney() < 250) {
+                                        fPrint("You need " + (250 - p.getMoney()) + " more gold to purchase jokersbulldozer");
                                         break;
                                     }
-                                    turnToPlayer().addPowerup("jokersbulldozer");
-                                    System.out.println("---------------------------");
-                                    System.out.println("You have successfully purchased jokersbulldozer");
-                                    System.out.println("Type 'exitshop' to exit the shop");
-                                    System.out.println("---------------------------");
+                                    p.addPowerup("jokersbulldozer");
+                                    String [] t = {"You have successfully purchased jokersbulldozer", "You now have " + p.getMoney() + " gold remaining", "Type 'exitshop' to exit the shop"};
+                                    fPrint(t);
+                                    break;
                                 }
                                 default -> {
-                                    System.out.println("---------------------------");
-                                    System.out.println("Please enter a valid input");
-                                    System.out.println("---------------------------");
+                                    fPrint("Please enter a valid input (1-3)");
                                 }
+
                             }
                             nextIn = in.nextLine();
                         }
-                        System.out.println("---------------------------");
-                        System.out.println("You have left the shop");
-                        System.out.println("---------------------------");
+                        fPrint("You have left the shop");
+                        break;
                     }
+
                     case "usepower" -> {
-                        System.out.println("---------------------------");
-                        System.out.println("Which type of powerup would you like to use?");
-                        System.out.println("---------------------------");
+                        fPrint("Which power would you like to use? ('blackoutbatman' 'aerialassault' 'jokersbulldozer')");
                         String power = in.nextLine().toLowerCase();
+
                         while (!power.equals("blackoutbatman") && !power.equals("aerialassault") && !power.equals("jokersbulldozer")) {
-                            System.out.println("---------------------------");
-                            System.out.println("Please enter a valid powerup (blackoutbatman, aerialassault, jokersbulldozer)");
-                            System.out.println("---------------------------");
+                            fPrint("Please enter a valid powerup ('blackoutbatman' 'aerialassault' 'jokersbulldozer')");
                             power = in.nextLine().toLowerCase();
                         }
+
                         switch (power) {
+
                             case "blackoutbatman" -> {
-                                if (!turnToPlayer().containsPower("blackoutbatman")) {
-                                    System.out.println("---------------------------");
-                                    System.out.println("You don't own this powerup");
-                                    System.out.println("---------------------------");
+                                if (!p.containsPower("blackoutbatman")) {
+                                    fPrint("You don't own blackoutbatman");
                                     break;
                                 }
                                 blackoutBatman();
-                                System.out.println("---------------------------");
-                                System.out.println("Blackoutbatman will be active for the next 6 moves");
-                                System.out.println("---------------------------");
+                                fPrint("Blackoutbatman will be active for the next 6 moves");
                                 printBoard();
+                                break;
                             }
+
                             case "aerialassault" -> {
-                                if (!turnToPlayer().containsPower("aerialassault")) {
-                                    System.out.println("---------------------------");
-                                    System.out.println("You don't own this powerup");
-                                    System.out.println("---------------------------");
+                                if (!p.containsPower("aerialassault")) {
+                                    fPrint("You don't own aerialassault");
                                     break;
                                 }
-                                System.out.println("---------------------------");
-                                System.out.println("Which column would you like to bomb?");
-                                System.out.println("---------------------------");
+                                printBoard();
+                                fPrint("Which column would you like to bomb? (1-7)");
                                 String column = in.nextLine();
                                 while (!column.equals("1") && !column.equals("2") && !column.equals("3") && !column.equals("4") && !column.equals("5") && !column.equals("6") && !column.equals("7")) {
-                                    System.out.println("---------------------------");
-                                    System.out.println("Please enter a valid column number");
-                                    System.out.println("---------------------------");
+                                    fPrint("Please enter a valid column number (1-7)");
                                     column = in.nextLine();
                                 }
                                 aerialAssault(Integer.parseInt(column));
-                                System.out.println("---------------------------");
-                                System.out.println("You have successfully bombed column " + column);
-                                System.out.println("---------------------------");
+                                fPrint("You have successfully bombed column " + column);
                                 printBoard();
+                                break;
                             }
+
                             case "jokersbulldozer" -> {
-                                if (!turnToPlayer().containsPower("jokersbulldozer")) {
-                                    System.out.println("---------------------------");
-                                    System.out.println("You don't own this powerup");
-                                    System.out.println("---------------------------");
+                                if (!p.containsPower("jokersbulldozer")) {
+                                    fPrint("You don't own jokersbulldozer");
                                     break;
                                 }
-                                System.out.println("---------------------------");
-                                System.out.println("Which row would you like to bulldoze?");
-                                System.out.println("---------------------------");
+                                printBoard();
+                                fPrint("Which row would you like to bulldoze? (1-6)");
                                 String row = in.nextLine();
                                 while (!row.equals("1") && !row.equals("2") && !row.equals("3") && !row.equals("4") && !row.equals("5") && !row.equals("6")) {
-                                    System.out.println("---------------------------");
-                                    System.out.println("Please enter a valid column number");
-                                    System.out.println("---------------------------");
+                                    fPrint("Please enter a valid row number (1-6)");
                                     row = in.nextLine();
                                 }
                                 jokersBulldozer(Integer.parseInt(row));
-                                System.out.println("---------------------------");
-                                System.out.println("You have successfully bulldozed row " + row);
-                                System.out.println("---------------------------");
+                                fPrint("You have successfully bulldozed row " + row);
                                 printBoard();
+                                break;
                             }
+
                         }
+                        break;
                     }
+
                     default -> {
-                        System.out.println("---------------------------");
-                        System.out.println("Please enter a valid value");
-                        System.out.println("---------------------------");
+                        fPrint("Please enter a valid value ('move' 'exit' 'powers' 'shop' 'usepower')") ;
                     }
+
                 }
                 input = in.nextLine();
             }
 
-            System.out.println("---------------------------");
-            System.out.println("Which column would you like your piece to go in?");
-            System.out.println("---------------------------");
+            fPrint("Which column would you like your piece to go in? (1-7)");
             String move = in.nextLine();
             while (!isValidMove(board, move)) {
-                System.out.println("---------------------------");
-                System.out.println("Please enter a valid column number");
-                System.out.println("---------------------------");
+                fPrint("Please enter a valid column number (1-7)");
                 move = in.nextLine();
             }
             printBoard();
         }
     }
 
-    public boolean isValidMove(Board board, String move) {
+    private boolean isValidMove(Board board, String move) {
         if (!move.equals("1") && !move.equals("2") && !move.equals("3") && !move.equals("4") && !move.equals("5") && !move.equals("6") && !move.equals("7")) {
             return false;
         }
         return move(Integer.parseInt(move));
+    }
+
+    private Player turnToPlayer() {
+        if (turn == 0) {
+            return p1;
+        }
+        return p2;
+    }
+
+    private String turnToColor() {
+        if (turn == 0) {
+            return "\u001B[31m";
+        }
+        return "\u001B[33m";
+    }
+
+    private void fPrint(String text) {
+        System.out.println("-----------------------------------------");
+        System.out.println(text);
+        System.out.println("-----------------------------------------");
+    }
+
+    private void fPrint(String [] text) {
+        System.out.println("-----------------------------------------");
+        for (int i = 0; i < text.length; i++) {
+            System.out.println(text[i]);
+        }
+        System.out.println("-----------------------------------------");
     }
 }

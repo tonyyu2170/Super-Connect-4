@@ -13,6 +13,7 @@ public class Player {
 
     public void addPowerup(String type) {
         powers.add(new PowerUp(type));
+        money -= powers.get(powers.size() - 1).getCost();
     }
 
     public void usePowerup(String type) {
